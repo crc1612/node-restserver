@@ -1,10 +1,18 @@
 const express = require('express');
 const Usuario = require('../models/usuario');
+const mdAutenticacion = require('../middlewares/autenticacion');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
 const app = express();
 
-app.get('/usuario', function(req, res) {
+app.get('/usuario', mdAutenticacion.verificaToken, function(req, res) {
+    /* return res.json({
+        usuario: req.usuario,
+        nombre: req.usuario.nombre,
+        email: req.usuario.email
+    }); */
+
     let desde = req.query.desde || 0;
     desde = Number(desde);
     let limite = req.query.limite || 5;
@@ -29,7 +37,7 @@ app.get('/usuario', function(req, res) {
             });
         });
 });
-app.post('/usuario', function(req, res) {
+app.post('/usuario', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRole], function(req, res) {
 
     let body = req.body;
 
@@ -54,7 +62,7 @@ app.post('/usuario', function(req, res) {
         });
     });
 });
-app.put('/usuario/:id', function(req, res) {
+app.put('/usuario/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminUsuario], function(req, res) {
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre',
         'email',
@@ -77,7 +85,7 @@ app.put('/usuario/:id', function(req, res) {
     });
 
 });
-app.delete('/usuario/:id', function(req, res) {
+app.delete('/usuario/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRole], function(req, res) {
     let id = req.params.id;
     /* Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
         if (err) {
